@@ -133,45 +133,50 @@ const main = async () => {
     if ((i + 1) % chunkSize === 0)
       index++
   }
-  for (const chunk of _filenames) {
-    // await Promise.all(chunk.map(_filename => calcTagTrends(_filename)))
-    // .then(values => {
-    // async.parallel(chunk.map(_filename => calcTagTrends(_filename)), (err, values) => {
-    async.map(chunk, calcTagTrends, (err, values) => {
-      if (err) throw err
-      values.forEach(_tagTrends => {
-        if (!tagTrends) {
-          tagTrends = _tagTrends
-          return
-        }
-        _tagTrends.forEach(tagTrend => {
-          const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-          if (!findTagTrend) {
-            tagTrends.push(tagTrend)
-            return
-          }
-          findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
-        })
-      })
-    })
-  }
 
+  /* This is the beginning of the thread running which is still bug */
 
-  // for (const filename of filenames) {
-  //   const _tagTrends = await calcTagTrends(filename)
-  //   if (!tagTrends) {
-  //     tagTrends = _tagTrends
-  //     continue
-  //   }
-  //   _tagTrends.forEach(tagTrend => {
-  //     const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-  //     if (!findTagTrend) {
-  //       tagTrends.push(tagTrend)
-  //       return
-  //     }
-  //     findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
+  // for (const chunk of _filenames) {
+  //   // await Promise.all(chunk.map(_filename => calcTagTrends(_filename)))
+  //   // .then(values => {
+  //   // async.parallel(chunk.map(_filename => calcTagTrends(_filename)), (err, values) => {
+  //   async.map(chunk, calcTagTrends, (err, values) => {
+  //     if (err) throw err
+  //     values.forEach(_tagTrends => {
+  //       if (!tagTrends) {
+  //         tagTrends = _tagTrends
+  //         return
+  //       }
+  //       _tagTrends.forEach(tagTrend => {
+  //         const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
+  //         if (!findTagTrend) {
+  //           tagTrends.push(tagTrend)
+  //           return
+  //         }
+  //         findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
+  //       })
+  //     })
   //   })
   // }
+
+  /* This is the end of the thread running which is still bug */
+
+
+  for (const filename of filenames) {
+    const _tagTrends = await calcTagTrends(filename)
+    if (!tagTrends) {
+      tagTrends = _tagTrends
+      continue
+    }
+    _tagTrends.forEach(tagTrend => {
+      const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
+      if (!findTagTrend) {
+        tagTrends.push(tagTrend)
+        return
+      }
+      findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
+    })
+  }
 
   console.log('\n----------------------\n')
   // topicTrends = Object.values(topicTrends)
