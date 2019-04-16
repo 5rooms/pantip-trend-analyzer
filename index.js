@@ -176,6 +176,7 @@ const main = async () => {
       const findTopicTrend = topicTrends[topicTrend.topic_id]
       findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
     })
+    console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
   }
 
   console.log('\n----------------------\n')
