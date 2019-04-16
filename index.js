@@ -221,7 +221,7 @@ const main = async () => {
   const topMostPopularTopics = 'Top most popular topics'
   console.log(topMostPopularTopics)
   result += '\n\n' + topMostPopularTopics
-  for (let i = 0; i < topicTrends.length; i++) {
+  for (let i = 0; i < 10; i++) {
     const { topic_id, viewer, rooms } = topicTrends[i]
     const topTopicString = `${i + 1}.) ${topic_id}, from ${viewer} viewers from [${rooms}] rooms.`
     console.log(topTopicString)
