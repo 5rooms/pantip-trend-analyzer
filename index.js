@@ -2,11 +2,10 @@ const fs = require('fs')
 const zlib = require('zlib')
 const readline = require('readline')
 const moment = require('moment')
-const async = require('async')
 
 const dir = '/amazon_data/blueplanet'
-// const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
-const filenames = ['./testdata.gz', './testdata2.gz']
+const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
+// const filenames = ['./testdata.gz', './testdata2.gz']
 // const filenames = [`${dir}/blueplanet-20181015.gz`, `${dir}/blueplanet-20181016.gz`]
 
 let topicTrends = {}
