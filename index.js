@@ -6,7 +6,7 @@ const moment = require('moment')
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
 // const filenames = ['./testdata.gz', './testdata2.gz']
-const filenames = [`${dir}/blueplanet-20190304.gz`]
+const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
 
 let topicTrends = {}
 let count = 0
