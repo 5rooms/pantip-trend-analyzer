@@ -160,22 +160,36 @@ const main = async () => {
 
   for (const filename of filenames) {
     const _trends = await calcTrends(filename)
-    _trends.tagTrends.forEach(tagTrend => {
-      const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-      if (!findTagTrend) {
-        tagTrends.push(tagTrend)
-        return
-      }
-      findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
-    })
-    Object.values(_trends.topicTrends).forEach(topicTrend => {
-      if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
-        topicTrends[topicTrend.topic_id] = topicTrend
-        return
-      }
-      const findTopicTrend = topicTrends[topicTrend.topic_id]
-      findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
-    })
+    console.log(`There are ${_trends.tagTrends.length} tags and ${_trends.topicTrends.length} topics`)
+    let canSkip = { tag: false, topic: false }
+    if (!tagTrends) {
+      canSkip.tag = true
+      tagTrends = _trends.tagTrends
+    }
+    if (!topicTrends) {
+      canSkip.topic = true
+      topicTrends = _trends.topicTrends
+    }
+    if (canSkip.tag && canSkip.topic) continue
+
+    if (!canSkip.tag)
+      _trends.tagTrends.forEach(tagTrend => {
+        const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
+        if (!findTagTrend) {
+          tagTrends.push(tagTrend)
+          return
+        }
+        findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
+      })
+    if (!canSkip.topic)
+      Object.values(_trends.topicTrends).forEach(topicTrend => {
+        if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
+          topicTrends[topicTrend.topic_id] = topicTrend
+          return
+        }
+        const findTopicTrend = topicTrends[topicTrend.topic_id]
+        findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
+      })
     console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
   }
 
