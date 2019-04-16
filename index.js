@@ -12,7 +12,7 @@ const filenames = ['./testdata.gz', './testdata2.gz']
 let topicTrends = {}
 let count = 0
 
-const calcTagTrends = async (filename) => {
+const calcTrends = async (filename) => {
   const gzFileInput = fs.createReadStream(filename)
   const gunzip = zlib.createGunzip()
 
@@ -20,15 +20,13 @@ const calcTagTrends = async (filename) => {
     input: gunzip,
   })
 
-  tagTrends = await new Promise((resolve, reject) => {
+  trends = await new Promise((resolve, reject) => {
     console.log(moment().format(), `Start reading ${filename}`)
-    // topicTrends = {}
-    // const __events = []
+    let _topicTrends = {}
     let _tagTrends = []
     interface.on('line', line => {
       if (!line.includes('start'))
         return
-      // __events.push(JSON.parse(line))
       const event = JSON.parse(line)
 
       const topicId = event.topic_id
@@ -36,10 +34,10 @@ const calcTagTrends = async (filename) => {
       tags = Object.values(tags)
       if (event.event !== 'start' || topicId === 0 || topicId === '0')
         return
-      if (topicTrends[topicId] !== undefined) {
-        if (!(event.mid === '0' || event.mid === 0) && !topicTrends[topicId].mids.includes(event.mid)) {
-          topicTrends[topicId].viewer++
-          topicTrends[topicId].mids.push(event.mid)
+      if (_topicTrends[topicId] !== undefined) {
+        if (!(event.mid === '0' || event.mid === 0) && !_topicTrends[topicId].mids.includes(event.mid)) {
+          _topicTrends[topicId].viewer++
+          _topicTrends[topicId].mids.push(event.mid)
           if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
             return
           try {
@@ -56,9 +54,9 @@ const calcTagTrends = async (filename) => {
           } catch (err) {
 
           }
-        } else if (!(event.tc === '0' || event.tc === 0) && !topicTrends[topicId].tcs.includes(event.tc)) {
-          topicTrends[topicId].viewer++
-          topicTrends[topicId].mids.push(event.tc)
+        } else if (!(event.tc === '0' || event.tc === 0) && !_topicTrends[topicId].tcs.includes(event.tc)) {
+          _topicTrends[topicId].viewer++
+          _topicTrends[topicId].mids.push(event.tc)
           if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
             return
           try {
@@ -77,7 +75,7 @@ const calcTagTrends = async (filename) => {
           }
         }
       } else {
-        topicTrends[topicId] = { topic_id: topicId, score: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
+        _topicTrends[topicId] = { topic_id: topicId, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
         if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
           return
         try {
@@ -99,8 +97,7 @@ const calcTagTrends = async (filename) => {
     })
     interface.on('error', (err) => { reject(err) })
     interface.on('close', () => {
-      // resolve(__events)
-      resolve(_tagTrends)
+      resolve({ tagTrends: _tagTrends, topicTrends: _topicTrends })
     })
     gzFileInput.on('data', function (data) {
       gunzip.write(data)
@@ -109,38 +106,38 @@ const calcTagTrends = async (filename) => {
       gunzip.end()
     })
   })
-  // events.push(..._events)
   count++
   console.log(moment().format(), `Done reading ${filename} (${count}/${filenames.length})`)
-  return tagTrends
+  return trends
 }
+
+// -------------------------------------- main --------------------------------------
 
 const main = async () => {
   const startTime = moment().format()
   console.log(startTime, 'Start')
   let result = `${startTime}, Start`
 
-  // const events = []
-  let tagTrends = []
-
-  const _filenames = []
-  const chunkSize = 2
-  let index = 0
-  for (let i = 0; i < filenames.length; i++) {
-    if (!_filenames[index])
-      _filenames[index] = []
-    _filenames[index].push(filenames[i])
-    if ((i + 1) % chunkSize === 0)
-      index++
-  }
+  const tagTrends = []
 
   /* This is the beginning of the thread running which is still bug */
 
+  // const _filenames = []
+  // const chunkSize = 2
+  // let index = 0
+  // for (let i = 0; i < filenames.length; i++) {
+  //   if (!_filenames[index])
+  //     _filenames[index] = []
+  //   _filenames[index].push(filenames[i])
+  //   if ((i + 1) % chunkSize === 0)
+  //     index++
+  // }
+
   // for (const chunk of _filenames) {
-  //   // await Promise.all(chunk.map(_filename => calcTagTrends(_filename)))
+  //   // await Promise.all(chunk.map(_filename => calcTrends(_filename)))
   //   // .then(values => {
-  //   // async.parallel(chunk.map(_filename => calcTagTrends(_filename)), (err, values) => {
-  //   async.map(chunk, calcTagTrends, (err, values) => {
+  //   // async.parallel(chunk.map(_filename => calcTrends(_filename)), (err, values) => {
+  //   async.map(chunk, calcTrends, (err, values) => {
   //     if (err) throw err
   //     values.forEach(_tagTrends => {
   //       if (!tagTrends) {
@@ -163,12 +160,8 @@ const main = async () => {
 
 
   for (const filename of filenames) {
-    const _tagTrends = await calcTagTrends(filename)
-    if (!tagTrends) {
-      tagTrends = _tagTrends
-      continue
-    }
-    _tagTrends.forEach(tagTrend => {
+    const _trends = await calcTrends(filename)
+    _trends.tagTrends.forEach(tagTrend => {
       const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
       if (!findTagTrend) {
         tagTrends.push(tagTrend)
@@ -176,20 +169,43 @@ const main = async () => {
       }
       findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
     })
+    Object.values(_trends.topicTrends).forEach(topicTrend => {
+      if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
+        topicTrends[topicTrend.topic_id] = topicTrend
+        return
+      }
+      const findTopicTrend = topicTrends[topicTrend.topic_id]
+      findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
+    })
   }
 
   console.log('\n----------------------\n')
-  // topicTrends = Object.values(topicTrends)
+  topicTrends = Object.values(topicTrends)
+  topicTrends.sort((a, b) => b.viewer - a.viewer)
   tagTrends.sort((a, b) => b.viewer - a.viewer)
 
-  const topMostPopularTags = 'Top most popular tags'
-  console.log(topMostPopularTags)
-  result += '\n\n' + topMostPopularTags
-  for (let i = 0; i < tagTrends.length; i++) {
-    const { tag, viewer, topics } = tagTrends[i]
-    const topTagString = `${i + 1}.) ${tag}, from ${viewer} viewers in ${topics.length} topics`
-    console.log(topTagString)
-    result += '\n' + topTagString
+  /* Start of tag trend */
+
+  // const topMostPopularTags = 'Top most popular tags'
+  // console.log(topMostPopularTags)
+  // result += '\n\n' + topMostPopularTags
+  // for (let i = 0; i < tagTrends.length; i++) {
+  //   const { tag, viewer, topics } = tagTrends[i]
+  //   const topTagString = `${i + 1}.) ${tag}, from ${viewer} viewers in ${topics.length} topics`
+  //   console.log(topTagString)
+  //   result += '\n' + topTagString
+  // }
+
+  /* End of tag trend */
+
+  const topMostPopularTopics = 'Top most popular topics'
+  console.log(topMostPopularTopics)
+  result += '\n\n' + topMostPopularTopics
+  for (let i = 0; i < topicTrends.length; i++) {
+    const { topic_id, viewer, rooms } = topicTrends[i]
+    const topTopicString = `${i + 1}.) ${topic_id}, from ${viewer} viewers from [${rooms}] rooms.`
+    console.log(topTopicString)
+    result += '\n' + topTopicString
   }
 
   const endTime = moment()
