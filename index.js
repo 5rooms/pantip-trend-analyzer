@@ -6,7 +6,7 @@ const moment = require('moment')
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
 // const filenames = ['./testdata.gz', './testdata2.gz']
-const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
+const filenames = [`${dir}/blueplanet-20190304.gz`]
 
 let topicTrends = {}
 let count = 0
@@ -160,7 +160,7 @@ const main = async () => {
 
   for (const filename of filenames) {
     const _trends = await calcTrends(filename)
-    console.log(`There are ${_trends.tagTrends.length} tags and ${_trends.topicTrends.length} topics`)
+    console.log(`There are ${_trends.tagTrends.length} tags and ${Object.keys(_trends.topicTrends).length} topics`)
     let canSkip = { tag: false, topic: false }
     if (!tagTrends) {
       canSkip.tag = true
