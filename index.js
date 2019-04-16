@@ -75,7 +75,7 @@ const calcTrends = async (filename) => {
           }
         }
       } else {
-        _topicTrends[topicId] = { topic_id: topicId, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
+        _topicTrends[topicId] = { topic_id: topicId, updated_time: event.updated_time, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
         if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
           return
         try {
