@@ -21,7 +21,7 @@ const calcTrends = async (filename) => {
 
   trends = await new Promise((resolve, reject) => {
     console.log(moment().format(), `Start reading ${filename}`)
-    let _topicTrends = {}
+    // let _topicTrends = {}
     let _tagTrends = []
     interface.on('line', line => {
       if (!line.includes('start'))
@@ -33,10 +33,10 @@ const calcTrends = async (filename) => {
       tags = Object.values(tags)
       if (event.event !== 'start' || topicId === 0 || topicId === '0')
         return
-      if (_topicTrends[topicId] !== undefined) {
-        if (!(event.mid === '0' || event.mid === 0) && !_topicTrends[topicId].mids.includes(event.mid)) {
-          _topicTrends[topicId].viewer++
-          _topicTrends[topicId].mids.push(event.mid)
+      if (topicTrends[topicId] !== undefined) {
+        if (!(event.mid === '0' || event.mid === 0) && !topicTrends[topicId].mids.includes(event.mid)) {
+          topicTrends[topicId].viewer++
+          topicTrends[topicId].mids.push(event.mid)
           if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
             return
           try {
@@ -53,9 +53,9 @@ const calcTrends = async (filename) => {
           } catch (err) {
 
           }
-        } else if (!(event.tc === '0' || event.tc === 0) && !_topicTrends[topicId].tcs.includes(event.tc)) {
-          _topicTrends[topicId].viewer++
-          _topicTrends[topicId].mids.push(event.tc)
+        } else if (!(event.tc === '0' || event.tc === 0) && !topicTrends[topicId].tcs.includes(event.tc)) {
+          topicTrends[topicId].viewer++
+          topicTrends[topicId].mids.push(event.tc)
           if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
             return
           try {
@@ -74,7 +74,7 @@ const calcTrends = async (filename) => {
           }
         }
       } else {
-        _topicTrends[topicId] = { topic_id: topicId, updated_time: event.updated_time, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
+        topicTrends[topicId] = { topic_id: topicId, updated_time: event.updated_time, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
         if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
           return
         try {
@@ -96,7 +96,8 @@ const calcTrends = async (filename) => {
     })
     interface.on('error', (err) => { reject(err) })
     interface.on('close', () => {
-      resolve({ tagTrends: _tagTrends, topicTrends: _topicTrends })
+      // resolve({ tagTrends: _tagTrends, topicTrends: _topicTrends })
+      resolve({ tagTrends: _tagTrends })
     })
     gzFileInput.on('data', function (data) {
       gunzip.write(data)
@@ -160,36 +161,41 @@ const main = async () => {
 
   for (const filename of filenames) {
     const _trends = await calcTrends(filename)
-    console.log(`There are ${_trends.tagTrends.length} tags and ${Object.keys(_trends.topicTrends).length} topics`)
-    let canSkip = { tag: false, topic: false }
-    if (!tagTrends) {
-      canSkip.tag = true
-      tagTrends = _trends.tagTrends
-    }
-    if (!topicTrends) {
-      canSkip.topic = true
-      topicTrends = _trends.topicTrends
-    }
-    if (canSkip.tag && canSkip.topic) continue
+    console.log(`There are ${_trends.tagTrends.length} tags and ${Object.keys(topicTrends).length} topics`)
 
-    if (!canSkip.tag)
-      _trends.tagTrends.forEach(tagTrend => {
-        const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-        if (!findTagTrend) {
-          tagTrends.push(tagTrend)
-          return
-        }
-        findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
-      })
-    if (!canSkip.topic)
-      Object.values(_trends.topicTrends).forEach(topicTrend => {
-        if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
-          topicTrends[topicTrend.topic_id] = topicTrend
-          return
-        }
-        const findTopicTrend = topicTrends[topicTrend.topic_id]
-        findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
-      })
+    if (!tagTrends) {
+      tagTrends = _trends.tagTrends
+      continue
+    }
+    // let canSkip = { tag: false, topic: false }
+    // if (!tagTrends) {
+    //   canSkip.tag = true
+    //   tagTrends = _trends.tagTrends
+    // }
+    // if (!topicTrends) {
+    //   canSkip.topic = true
+    //   topicTrends = _trends.topicTrends
+    // }
+    // if (canSkip.tag && canSkip.topic) continue
+
+    // if (!canSkip.tag)
+    _trends.tagTrends.forEach(tagTrend => {
+      const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
+      if (!findTagTrend) {
+        tagTrends.push(tagTrend)
+        return
+      }
+      findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
+    })
+    // if (!canSkip.topic)
+    //   Object.values(_trends.topicTrends).forEach(topicTrend => {
+    //     if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
+    //       topicTrends[topicTrend.topic_id] = topicTrend
+    //       return
+    //     }
+    //     const findTopicTrend = topicTrends[topicTrend.topic_id]
+    //     findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
+    //   })
     console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
   }
 
