@@ -5,8 +5,8 @@ const moment = require('moment')
 
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
-// const filenames = ['./testdata.gz', './testdata2.gz']
-const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
+const filenames = ['./testdata.gz', './testdata2.gz']
+// const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
 
 let topicTrends = {}
 let count = 0
@@ -96,7 +96,6 @@ const calcTrends = async (filename) => {
     })
     interface.on('error', (err) => { reject(err) })
     interface.on('close', () => {
-      // resolve({ tagTrends: _tagTrends, topicTrends: _topicTrends })
       resolve({ tagTrends: _tagTrends })
     })
     gzFileInput.on('data', function (data) {
@@ -120,45 +119,6 @@ const main = async () => {
 
   const tagTrends = []
 
-  /* This is the beginning of the thread running which is still bug */
-
-  // const _filenames = []
-  // const chunkSize = 2
-  // let index = 0
-  // for (let i = 0; i < filenames.length; i++) {
-  //   if (!_filenames[index])
-  //     _filenames[index] = []
-  //   _filenames[index].push(filenames[i])
-  //   if ((i + 1) % chunkSize === 0)
-  //     index++
-  // }
-
-  // for (const chunk of _filenames) {
-  //   // await Promise.all(chunk.map(_filename => calcTrends(_filename)))
-  //   // .then(values => {
-  //   // async.parallel(chunk.map(_filename => calcTrends(_filename)), (err, values) => {
-  //   async.map(chunk, calcTrends, (err, values) => {
-  //     if (err) throw err
-  //     values.forEach(_tagTrends => {
-  //       if (!tagTrends) {
-  //         tagTrends = _tagTrends
-  //         return
-  //       }
-  //       _tagTrends.forEach(tagTrend => {
-  //         const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-  //         if (!findTagTrend) {
-  //           tagTrends.push(tagTrend)
-  //           return
-  //         }
-  //         findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
-  //       })
-  //     })
-  //   })
-  // }
-
-  /* This is the end of the thread running which is still bug */
-
-
   for (const filename of filenames) {
     const _trends = await calcTrends(filename)
     console.log(`There are ${_trends.tagTrends.length} tags and ${Object.keys(topicTrends).length} topics`)
@@ -167,18 +127,6 @@ const main = async () => {
       tagTrends = _trends.tagTrends
       continue
     }
-    // let canSkip = { tag: false, topic: false }
-    // if (!tagTrends) {
-    //   canSkip.tag = true
-    //   tagTrends = _trends.tagTrends
-    // }
-    // if (!topicTrends) {
-    //   canSkip.topic = true
-    //   topicTrends = _trends.topicTrends
-    // }
-    // if (canSkip.tag && canSkip.topic) continue
-
-    // if (!canSkip.tag)
     _trends.tagTrends.forEach(tagTrend => {
       const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
       if (!findTagTrend) {
@@ -187,15 +135,6 @@ const main = async () => {
       }
       findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
     })
-    // if (!canSkip.topic)
-    //   Object.values(_trends.topicTrends).forEach(topicTrend => {
-    //     if (!Object.keys(topicTrends).includes(topicTrend.topic_id)) {
-    //       topicTrends[topicTrend.topic_id] = topicTrend
-    //       return
-    //     }
-    //     const findTopicTrend = topicTrends[topicTrend.topic_id]
-    //     findTopicTrend.viewer = (findTopicTrend.viewer || 0) + (topicTrend.viewer || 0)
-    //   })
     console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
   }
 
