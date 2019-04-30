@@ -2,6 +2,7 @@ const fs = require('fs')
 const zlib = require('zlib')
 const readline = require('readline')
 const moment = require('moment')
+const db = require('./mongodb')
 
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
@@ -135,6 +136,7 @@ const main = async () => {
       }
       findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
     })
+    db.get('Events').insert(_trends.tagTrends)
     console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
   }
 
