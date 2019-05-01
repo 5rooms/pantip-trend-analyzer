@@ -10,6 +10,7 @@ const filenames = ['./testdata.gz', './testdata2.gz']
 // const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
 
 let topicTrends = {}
+let tagTrends = []
 let count = 0
 
 const calcTrends = async (filename) => {
@@ -22,15 +23,15 @@ const calcTrends = async (filename) => {
 
   trends = await new Promise((resolve, reject) => {
     console.log(moment().format(), `Start reading ${filename}`)
-    // let _topicTrends = {}
-    let _tagTrends = []
     interface.on('line', line => {
       if (!line.includes('start'))
         return
       const event = JSON.parse(line)
 
       const topicId = event.topic_id
-      let { tags = [] } = event
+      let {
+        tags = []
+      } = event
       tags = Object.values(tags)
       if (event.event !== 'start' || topicId === 0 || topicId === '0')
         return
@@ -42,18 +43,20 @@ const calcTrends = async (filename) => {
             return
           try {
             tags.forEach(tag => {
-              const tagFind = _tagTrends.find(t => t.tag === tag)
+              const tagFind = tagTrends.find(t => t.tag === tag)
               if (tagFind) {
                 tagFind.viewer++
                 if (!tagFind.topics.includes(topicId))
                   tagFind.topics.push(topicId)
               } else {
-                _tagTrends.push({ tag, viewer: 1, topics: [topicId] })
+                tagTrends.push({
+                  tag,
+                  viewer: 1,
+                  topics: [topicId]
+                })
               }
             })
-          } catch (err) {
-
-          }
+          } catch (err) {}
         } else if (!(event.tc === '0' || event.tc === 0) && !topicTrends[topicId].tcs.includes(event.tc)) {
           topicTrends[topicId].viewer++
           topicTrends[topicId].mids.push(event.tc)
@@ -61,13 +64,17 @@ const calcTrends = async (filename) => {
             return
           try {
             tags.forEach(tag => {
-              const tagFind = _tagTrends.find(t => t.tag === tag)
+              const tagFind = tagTrends.find(t => t.tag === tag)
               if (tagFind) {
                 tagFind.viewer++
                 if (!tagFind.topics.includes(topicId))
                   tagFind.topics.push(topicId)
               } else {
-                _tagTrends.push({ tag, viewer: 1, topics: [topicId] })
+                tagTrends.push({
+                  tag,
+                  viewer: 1,
+                  topics: [topicId]
+                })
               }
             })
           } catch (err) {
@@ -75,18 +82,30 @@ const calcTrends = async (filename) => {
           }
         }
       } else {
-        topicTrends[topicId] = { topic_id: topicId, updated_time: event.updated_time, rooms: event.rooms, tags: event.tags, viewer: 1, mids: event.mid && event.mid !== '0' ? [event.mid] : [], tcs: event.tc && event.tc !== '0' ? [event.tc] : [] }
+        topicTrends[topicId] = {
+          topic_id: topicId,
+          updated_time: event.updated_time,
+          rooms: event.rooms,
+          tags: event.tags,
+          viewer: 1,
+          mids: event.mid && event.mid !== '0' ? [event.mid] : [],
+          tcs: event.tc && event.tc !== '0' ? [event.tc] : []
+        }
         if (!tags || tags === undefined || typeof tags !== 'object' || tags.length < 1)
           return
         try {
           tags.forEach(tag => {
-            const tagFind = _tagTrends.find(t => t.tag === tag)
+            const tagFind = tagTrends.find(t => t.tag === tag)
             if (tagFind) {
               tagFind.viewer++
               if (!tagFind.topics.includes(topicId))
                 tagFind.topics.push(topicId)
             } else {
-              _tagTrends.push({ tag, viewer: 1, topics: [topicId] })
+              tagTrends.push({
+                tag,
+                viewer: 1,
+                topics: [topicId]
+              })
             }
           })
         } catch (err) {
@@ -95,9 +114,13 @@ const calcTrends = async (filename) => {
       }
 
     })
-    interface.on('error', (err) => { reject(err) })
+    interface.on('error', (err) => {
+      reject(err)
+    })
     interface.on('close', () => {
-      resolve({ tagTrends: _tagTrends })
+      resolve({
+        tagTrends: tagTrends
+      })
     })
     gzFileInput.on('data', function (data) {
       gunzip.write(data)
@@ -121,23 +144,7 @@ const main = async () => {
   const tagTrends = []
 
   for (const filename of filenames) {
-    const _trends = await calcTrends(filename)
-    console.log(`There are ${_trends.tagTrends.length} tags and ${Object.keys(topicTrends).length} topics`)
-
-    if (!tagTrends) {
-      tagTrends = _trends.tagTrends
-      continue
-    }
-    _trends.tagTrends.forEach(tagTrend => {
-      const findTagTrend = tagTrends.find(t => t.tag === tagTrend.tag)
-      if (!findTagTrend) {
-        tagTrends.push(tagTrend)
-        return
-      }
-      findTagTrend.viewer = (findTagTrend.viewer || 0) + (tagTrend.viewer || 0)
-    })
-    db.get('Events').insert(_trends.tagTrends)
-    console.log(moment().format(), `Done calculating topic and tag trends for ${filename}.`)
+    await calcTrends(filename)
   }
 
   console.log('\n----------------------\n')
@@ -163,7 +170,11 @@ const main = async () => {
   console.log(topMostPopularTopics)
   result += '\n\n' + topMostPopularTopics
   for (let i = 0; i < 10; i++) {
-    const { topic_id, viewer, rooms } = topicTrends[i]
+    const {
+      topic_id,
+      viewer,
+      rooms
+    } = topicTrends[i]
     const topTopicString = `${i + 1}.) ${topic_id}, from ${viewer} viewers from [${rooms}] rooms.`
     console.log(topTopicString)
     result += '\n' + topTopicString
