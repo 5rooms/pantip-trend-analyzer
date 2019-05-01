@@ -1,1 +1,1 @@
-export default require('monk')('localhost/pantip-trend')
+module.exports = require('monk')('localhost/pantip-trend')
