@@ -86,7 +86,6 @@ const calcTrends = async (filename) => {
           topic_id: topicId,
           updated_time: event.updated_time,
           rooms: event.rooms,
-          rooms: event.rooms,
           viewer: 1,
           mids: event.mid && event.mid !== '0' ? [event.mid] : [],
           tcs: event.tc && event.tc !== '0' ? [event.tc] : []
