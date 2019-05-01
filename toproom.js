@@ -6,8 +6,8 @@ const moment = require('moment')
 
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
-const filenames = ['./testdata.gz', './testdata2.gz']
-// const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
+// const filenames = ['./testdata.gz', './testdata2.gz']
+const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
 
 let topicTrends = {}
 let tagTrends = []
@@ -33,9 +33,9 @@ const calcTrends = async (filename) => {
       const event = JSON.parse(line)
 
       const pageUrl = event.url
-      let {rooms = []} = event
+      let { rooms = [] } = event
       rooms = Object.values(rooms)
-      
+
       const topicId = event.topic_id
       let { tags = [] } = event
       tags = Object.values(tags)
@@ -45,11 +45,11 @@ const calcTrends = async (filename) => {
         var forum = prompt.split("/") // forum[4] is room's name.
         forum = forum[4]
         if (forum) {
-            if(Object.keys(roomsTrends).includes(forum)) {
-              forum.viewer++
-            }else {
-              roomsTrends[forum] = {viewer: 1, url: prompt, forum}
-            }
+          if (Object.keys(roomsTrends).includes(forum)) {
+            forum.viewer++
+          } else {
+            roomsTrends[forum] = { viewer: 1, url: prompt, forum }
+          }
         } else {
           return
         }
@@ -98,7 +98,12 @@ const main = async () => {
   const topMostAccessedRooms = 'Top most being accessed rooms'
   console.log(topMostAccessedRooms)
   result += '\n\n' + topMostAccessedRooms
+  console.log('There are', roomsTrends.length, 'rooms.')
+  console.log(roomsTrends)
+  console.log('\n========================\n')
   for (let i = 0; i < 3; i++) {
+    if (!roomsTrends)
+      continue
     const {
       url,
       viewer,
