@@ -2,12 +2,12 @@ const fs = require('fs')
 const zlib = require('zlib')
 const readline = require('readline')
 const moment = require('moment')
-const db = require('./mongodb')
+// const db = require('./mongodb')
 
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
-const filenames = ['./testdata.gz', './testdata2.gz']
-// const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
+// const filenames = ['./testdata.gz', './testdata2.gz']
+const filenames = [`${dir}/blueplanet-20190304.gz`, `${dir}/blueplanet-20190305.gz`, `${dir}/blueplanet-20190306.gz`]
 
 let topicTrends = {}
 let roomTrends = []
@@ -153,31 +153,31 @@ const main = async () => {
 
   /* Start of room trend */
 
-  // const topMostPopularrooms = 'Top most popular rooms'
-  // console.log(topMostPopularrooms)
-  // result += '\n\n' + topMostPopularrooms
-  // for (let i = 0; i < roomTrends.length; i++) {
-  //   const { room, viewer, topics } = roomTrends[i]
-  //   const toproomString = `${i + 1}.) ${room}, from ${viewer} viewers in ${topics.length} topics`
-  //   console.log(toproomString)
-  //   result += '\n' + toproomString
-  // }
+  const topMostPopularrooms = 'Top most popular rooms'
+  console.log(topMostPopularrooms)
+  result += '\n\n' + topMostPopularrooms
+  for (let i = 0; i < roomTrends.length; i++) {
+    const { room, viewer, topics } = roomTrends[i]
+    const toproomString = `${i + 1}.) ${room}, from ${viewer} viewers in ${topics.length} topics`
+    console.log(toproomString)
+    result += '\n' + toproomString
+  }
 
   /* End of room trend */
 
-  const topMostPopularTopics = 'Top most popular topics'
-  console.log(topMostPopularTopics)
-  result += '\n\n' + topMostPopularTopics
-  for (let i = 0; i < 10; i++) {
-    const {
-      topic_id,
-      viewer,
-      rooms
-    } = topicTrends[i]
-    const topTopicString = `${i + 1}.) ${topic_id}, from ${viewer} viewers from [${rooms}] rooms.`
-    console.log(topTopicString)
-    result += '\n' + topTopicString
-  }
+  // const topMostPopularTopics = 'Top most popular topics'
+  // console.log(topMostPopularTopics)
+  // result += '\n\n' + topMostPopularTopics
+  // for (let i = 0; i < 10; i++) {
+  //   const {
+  //     topic_id,
+  //     viewer,
+  //     rooms
+  //   } = topicTrends[i]
+  //   const topTopicString = `${i + 1}.) ${topic_id}, from ${viewer} viewers from [${rooms}] rooms.`
+  //   console.log(topTopicString)
+  //   result += '\n' + topTopicString
+  // }
 
   const endTime = moment()
   const endString = `\n${endTime.format()} Done. Running time: ${endTime.diff(startTime, 'seconds')} seconds.`

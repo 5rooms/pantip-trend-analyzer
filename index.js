@@ -2,7 +2,7 @@ const fs = require('fs')
 const zlib = require('zlib')
 const readline = require('readline')
 const moment = require('moment')
-const db = require('./mongodb')
+// const db = require('./mongodb')
 
 const dir = '/amazon_data/blueplanet'
 // const filenames = fs.readdirSync(dir).map(filename => `${dir}/${filename}`)
@@ -56,7 +56,7 @@ const calcTrends = async (filename) => {
                 })
               }
             })
-          } catch (err) {}
+          } catch (err) { }
         } else if (!(event.tc === '0' || event.tc === 0) && !topicTrends[topicId].tcs.includes(event.tc)) {
           topicTrends[topicId].viewer++
           topicTrends[topicId].mids.push(event.tc)
